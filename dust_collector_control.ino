@@ -4,7 +4,7 @@
 
 #include <RCSwitch.h> // https://github.com/sui77/rc-switch
 #include "EmonLib.h"
-#include <Wire.h> 
+#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 // Contains EEPROM.read() and EEPROM.write()
 #include <EEPROM.h>
@@ -71,7 +71,7 @@ int const OFF = 0;
 
 String stateNames[] = {
   "Status",
-  "Power", 
+  "Power",
   "Sens 1 Off Delay",
   "Sens 2 Off Delay",
   "Sens 3 Off Delay",
@@ -84,7 +84,7 @@ int currentSampleRate = 300; // Sample rate to measure current from sensors
 int powerOffDelay = 5000; // Delay before switching off after current is cut
 int powerOnSmoothingDelay = 1000; // Delay after turning on so false negatives are weeded out
 int relayCtrlPin = 5; // control pin for the beef cake relay
-unsigned long debounceDelay = 1000; 
+unsigned long debounceDelay = 1000;
 float currentOffset = 0.02;
 boolean isCurrent = false;
 int screenSleepDelay = 5000;
@@ -117,7 +117,7 @@ void setup()
   initCurrentSensors();
 
   if(storage.menuState[manualPowerState] == POWER_OFF) {
-    lcdPrint("Manual power", "is off"); 
+    lcdPrint("Manual power", "is off");
   }
 
   if(storage.menuState[manualPowerState] == POWER_ON) {
@@ -137,14 +137,14 @@ void initConfig(){
 
 void initCurrentSensors() {
   emon1.current(A0, 111.1);             // Current: input pin, calibration.
-  emon2.current(A1, 111.1); 
-  emon3.current(A2, 111.1); 
+  emon2.current(A1, 111.1);
+  emon3.current(A2, 111.1);
   emon4.current(A3, 111.1);
 }
 
 void initGeneral(){
   Serial.begin(9600);
-  lcd.init();                      // initialize the lcd 
+  lcd.init();                      // initialize the lcd
   lcd.setCursor(1,0);
   mySwitch.enableReceive(0);
   pinMode(relayCtrlPin, OUTPUT);
@@ -159,9 +159,9 @@ void initButtons() {
 
 void handleCurrentSensors() {
   Irms1 = emon1.calcIrms(currentSampleRate);
-  Irms2 = emon1.calcIrms(currentSampleRate);
-  Irms3 = emon1.calcIrms(currentSampleRate);
-  Irms4 = emon1.calcIrms(currentSampleRate);
+  Irms2 = emon2.calcIrms(currentSampleRate);
+  Irms3 = emon3.calcIrms(currentSampleRate);
+  Irms4 = emon4.calcIrms(currentSampleRate);
 
   if(Irms1 > currentOffset){
     isCurrent = true;
@@ -190,13 +190,13 @@ void handleCurrentSensors() {
     lcdPrint("Current Sensors", "Initializing...");
     startMessageDisplayed = true;
   }
-  
+
   consoleLog(Irms1);
 
   if(initialized == 1 ) {
     consoleLog(Irms1*230.0);           // Apparent power
     consoleLog(" ");
-  
+
     if(rcSwitchState == 0) {
       if(isCurrent  && powerState == OFF) {
         powerOn();
@@ -211,7 +211,7 @@ void handleCurrentSensors() {
         delay(delayVal);
         powerOff();
         powerState = OFF;
-      } 
+      }
     }
   }
 }
@@ -227,7 +227,7 @@ void powerOff() {
 void handleRcReceiverSignal(){
   if (mySwitch.available()) {
     int value = mySwitch.getReceivedValue();
-    
+
     if (value == 0) {
       Serial.print("Unknown encoding");
     } else {
@@ -253,26 +253,26 @@ void handleRcReceiverSignal(){
     } else if(storage.menuState[rcState] == OFF) {
       lcdPrint("RC Mode", "is off");
     }
-    
+
     mySwitch.resetAvailable();
   }
 }
 
 String buttonNameForPin(int b) {
   if(b == selectBtn) {
-    return "Select"; 
+    return "Select";
   }
 
   if(b == leftBtn) {
-    return "Left";  
+    return "Left";
   }
 
   if(b == rightBtn) {
-    return "Right"; 
+    return "Right";
   }
 
   if(b == toggleBtn) {
-    return "Toggle";  
+    return "Toggle";
   }
 }
 
@@ -280,13 +280,13 @@ void callButtonFunc(int button) {
   if(button == selectBtn) {
     if(!screenAwake) {
       lcd.backlight();
-      screenAwake = true;  
+      screenAwake = true;
     }
     callSelectBtn();
   } else if(button == leftBtn && screenAwake) {
     callLeftBtn();
   } else if(button == rightBtn && screenAwake) {
-    callRightBtn();  
+    callRightBtn();
   } else if(button == toggleBtn && screenAwake) {
     callToggleBtn();
   }
@@ -328,7 +328,7 @@ void toggleMenuPower(boolean reverse=false){
   if(reverse){
     storage.menuState[manualPowerState] = storage.menuState[manualPowerState] - 1;
   } else {
-    storage.menuState[manualPowerState] = storage.menuState[manualPowerState] + 1;  
+    storage.menuState[manualPowerState] = storage.menuState[manualPowerState] + 1;
   }
 
   if(storage.menuState[manualPowerState] == 3) {
@@ -340,7 +340,7 @@ void toggleMenuPower(boolean reverse=false){
   // Reset the RC switch to off whenever changing any of the manual power settings
   if(rcSwitchState == ON) {
     rcSwitchState = OFF;
-    powerState = OFF; 
+    powerState = OFF;
   }
 
   if(storage.menuState[manualPowerState] == POWER_ON) {
@@ -367,7 +367,7 @@ void toggleSensorDelay(boolean reverse=false) {
   }
 
   if(storage.menuState[currentMenuState] < 0) {
-    storage.menuState[currentMenuState] = 0;  
+    storage.menuState[currentMenuState] = 0;
   }
 
   refreshMenu();
@@ -376,17 +376,17 @@ void toggleSensorDelay(boolean reverse=false) {
 
 void toggleRcValue(boolean reverse=false){
   if(storage.menuState[currentMenuState] == OFF) {
-    storage.menuState[currentMenuState] = ON; 
+    storage.menuState[currentMenuState] = ON;
   } else {
     storage.menuState[currentMenuState] = OFF;
 
     if(rcSwitchState == 1) {
       rcSwitchState = OFF;
       powerState = OFF;
-      powerOff(); 
+      powerOff();
     }
   }
- 
+
   refreshMenu();
   saveConfig();
 }
@@ -402,7 +402,7 @@ void callLeftBtn(){
 
   // RC power toggle
   } else if(currentMenuState == rcState){
-    toggleRcValue(true);  
+    toggleRcValue(true);
   }
 }
 
@@ -431,9 +431,9 @@ void refreshMenu() {
     if(storage.menuState[currentMenuState] == POWER_AUTO) {
       lcdPrint(stateNames[currentMenuState], " on [auto] off ");
     } else if(storage.menuState[currentMenuState] == POWER_ON) {
-      lcdPrint(stateNames[currentMenuState], "[on] auto  off "); 
+      lcdPrint(stateNames[currentMenuState], "[on] auto  off ");
     } else {
-      lcdPrint(stateNames[currentMenuState], " on  auto [off]"); 
+      lcdPrint(stateNames[currentMenuState], " on  auto [off]");
     }
   // Sensors off Delay
   } else if(currentMenuState == delay1State || currentMenuState == delay2State || currentMenuState == delay3State || currentMenuState == delay4State) {
@@ -444,24 +444,24 @@ void refreshMenu() {
     if(storage.menuState[currentMenuState] == OFF) {
       lcdPrint(stateNames[currentMenuState], " on [off]");
     } else {
-      lcdPrint(stateNames[currentMenuState], "[on] off "); 
+      lcdPrint(stateNames[currentMenuState], "[on] off ");
     }
   }
-  
+
 }
 
 String pluralSeconds(int val) {
   if(val == 1) {
-    return "second"; 
+    return "second";
   } else {
-    return "seconds";  
+    return "seconds";
   }
 }
 
 void displayMenuState() {
   if(displayedMenuState != currentMenuState){
     refreshMenu();
-    
+
     displayedMenuState = currentMenuState;
   }
 }
@@ -483,12 +483,12 @@ void handlePushButtons(){
 }
 
 void loop()
-{ 
+{
   // we cant add the rc receiver to this since it buffers signals, we want to disable it completely
   if(storage.menuState[manualPowerState] == POWER_AUTO) {
     handleCurrentSensors();
   }
-  
+
   handleRcReceiverSignal();
   handlePushButtons();
   displayMenuState();
@@ -500,6 +500,6 @@ void loop()
     lcd.clear();
     currentMenuState = 0;
   }
-  
+
 }
 
